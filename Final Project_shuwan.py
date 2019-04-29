@@ -64,20 +64,22 @@ def reformData(Tickers,data):
 def getPCA(Tickers,stock_data,n_comp=3,normalize=True,variance=True):
 
     stock_data=calculate_features(Tickers,stock_data)
+    
     stock_data=stock_data.replace([np.inf,-np.inf],np.nan)
     stock_data.fillna(method='ffill',inplace=True)
     if normalize:
         scaler=MinMaxScaler()
         data_scaled=scaler.fit_transform(np.array(stock_data))
-        data_scaled=pd.DataFrame(data_scaled,columns=stock_data.columns)
+        data_scaled=pd.DataFrame(data_scaled,columns=stock_data.columns,index=stock_data.index)
         data_scaled=data_scaled.stack().unstack(level=0).T
     else:
-        data_scaled=data_scaled.stack().unstack(level=0).T
+        data_scaled=stock_data.stack().unstack(level=0).T
     pca=PCA(n_components=n_comp).fit(np.array(data_scaled))
     print(np.sum(pca.explained_variance_ratio_))
     stock_PCA=pd.DataFrame(pca.transform(np.array(data_scaled)))
-    stock_PCA.index=stock_data.index
+    stock_PCA.index=data_scaled.index
     stock_PCA=stock_PCA.T.stack(level=0).T
+
     return stock_PCA
     #First three components can explain around 70% variance, and we think this is great.
 
